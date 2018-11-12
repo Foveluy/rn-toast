@@ -1,11 +1,14 @@
 import React from "react";
-import { Modal, View, Text, StyleSheet } from "react-native";
+import { Modal, View, Text, StyleSheet, Dimensions } from "react-native";
+
+const WIDTH = Dimensions.get("window").width;
+const HEIGHT = Dimensions.get("window").height;
 
 let Ref = {};
 
 export const Toast = {
-  open: ({ duration, text, icon, callback } = { text: "default" }) => {
-    Ref.switch({ duration, text, icon, callback });
+  open: ({ duration, text, icon, callback, mask } = { text: "default" }) => {
+    Ref.switch({ duration, text, icon, mask, callback });
   },
   close: () => {
     Ref.safeSetState({
@@ -20,7 +23,10 @@ export class RootToast extends React.Component {
   state = {
     modalVisible: false,
     text: void 666,
-    icon: "icon"
+    icon: "icon",
+    mask: true,
+    offsetX: 0,
+    offsetY: 0
   };
 
   safeSetState = (obj, cb) => {
@@ -34,7 +40,7 @@ export class RootToast extends React.Component {
       return;
     }
 
-    const { duration, text, icon, callback } = props;
+    const { duration, text, icon, callback, mask } = props;
 
     if (duration && duration > 0) {
       setTimeout(() => {
@@ -51,11 +57,13 @@ export class RootToast extends React.Component {
         <Text style={{ color: textColor, marginRight: 8 }}>{icon}</Text>
       )
     ) : null;
+
     this.safeSetState(
       {
         modalVisible: true,
         text: text,
-        icon: AssembleIcon
+        icon: AssembleIcon,
+        mask: mask === void 666 ? true : mask
       },
       callback
     );
@@ -71,26 +79,63 @@ export class RootToast extends React.Component {
     Ref = this;
   }
 
+  renderWithModal = () => {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={this.state.modalVisible}
+        onRequestClose={() =>
+          this.setState({
+            modalVisible: false
+          })
+        }
+      >
+        <View style={styles.outsideContainer}>
+          <View style={styles.container}>
+            {this.state.icon}
+            <Text style={{ color: textColor }}>{this.state.text}</Text>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  onWithoutMaskLayout = e => {
+    const layout = e.nativeEvent.layout;
+    this.setState({
+      offsetX: WIDTH / 2 - layout.width / 2,
+      offsetY: HEIGHT / 2 - layout.height / 2
+    });
+  };
+
+  renderWithoutModal = () => {
+    if (!this.state.modalVisible) return null;
+    return (
+      <View
+        style={{
+          position: "absolute",
+          left: this.state.offsetX,
+          marginTop: this.state.offsetY
+        }}
+      >
+        <View
+          onLayout={this.onWithoutMaskLayout}
+          style={styles.outsideContainer}
+        >
+          <View style={styles.container}>
+            {this.state.icon}
+            <Text style={{ color: textColor }}>{this.state.text}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   render() {
     return (
       <React.Fragment>
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={this.state.modalVisible}
-          onRequestClose={() =>
-            this.setState({
-              modalVisible: false
-            })
-          }
-        >
-          <View style={styles.outsideContainer}>
-            <View style={styles.container}>
-              {this.state.icon}
-              <Text style={{ color: textColor }}>{this.state.text}</Text>
-            </View>
-          </View>
-        </Modal>
+        {this.state.mask ? this.renderWithModal() : this.renderWithoutModal()}
       </React.Fragment>
     );
   }

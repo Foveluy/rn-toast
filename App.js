@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Button } from "react-native";
 import { RootToast, Toast } from "./MaskModal";
 
 class App extends React.Component {
