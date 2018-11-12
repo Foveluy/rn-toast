@@ -1,0 +1,14 @@
+node_modules/**/*
+.expo/*
+npm-debug.*
+*.jks
+*.p12
+*.key
+*.mobileprovision
+.watchmanconfig
+app.json
+assets/*
+babel.config.js
+App.js
+publish.sh
+package.json.bk
